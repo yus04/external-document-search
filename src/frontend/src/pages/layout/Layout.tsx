@@ -31,7 +31,7 @@ const Layout = () => {
             <header className={styles.header} role={"banner"}>
                 <div className={styles.headerContainer}>
                     <Link to="/" className={styles.headerTitleContainer}>
-                        <h3 className={styles.headerTitleLeft}>企業内向けChatと社内文書検索</h3>
+                        <h3 className={styles.headerTitleLeft}>企業内向けChatと社外文書検索</h3>
                     </Link>
                     <nav>
                         <ul className={styles.headerNavList}>
@@ -42,7 +42,7 @@ const Layout = () => {
                             </li>
                             <li className={styles.headerNavLeftMargin}>
                                 <NavLink to="/docsearch" className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}>
-                                    社内文書検索
+                                    社外文書検索
                                 </NavLink>
                             </li>
                         </ul>

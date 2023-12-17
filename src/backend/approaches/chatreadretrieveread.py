@@ -1,14 +1,13 @@
 from text import nonewlines
 
 import openai
-from azure.search.documents import SearchClient
-from azure.search.documents.models import QueryType
+import requests
 from approaches.approach import Approach
 from approaches.chatlogging import write_chatlog, ApproachType
 from core.messagebuilder import MessageBuilder
 from core.modelhelper import get_gpt_model, get_max_token_from_messages
 
-# Simple retrieve-then-read implementation, using the Cognitive Search and OpenAI APIs directly. It first retrieves
+# Simple retrieve-then-read implementation, using the Bing Search and OpenAI APIs directly. It first retrieves
 # top documents from search, then constructs a prompt with them, and then uses OpenAI to generate an completion 
 # (answer) with that prompt.
 class ChatReadRetrieveReadApproach(Approach):
@@ -18,7 +17,7 @@ class ChatReadRetrieveReadApproach(Approach):
     ASSISTANT = "assistant"
 
     """
-    Simple retrieve-then-read implementation, using the Cognitive Search and OpenAI APIs directly. It first retrieves
+    Simple retrieve-then-read implementation, using the Bing Search and OpenAI APIs directly. It first retrieves
     top documents from search, then constructs a prompt with them, and then uses OpenAI to generate an completion
     (answer) with that prompt.
     """
@@ -44,10 +43,9 @@ source quesion: {user_question}
         {'role' : ASSISTANT, 'content' : 'Health plan cardio coverage' }
     ]
 
-    def __init__(self, search_client: SearchClient, sourcepage_field: str, content_field: str):
-        self.search_client = search_client
-        self.sourcepage_field = sourcepage_field
-        self.content_field = content_field
+    def __init__(self, bing_search_key: str, bing_search_url: str):
+        self.bing_search_key = bing_search_key
+        self.bing_search_url = bing_search_url
     
     def run(self, user_name: str, history: list[dict], overrides: dict) -> any:
         chat_model = overrides.get("gptModel")
@@ -80,32 +78,44 @@ source quesion: {user_question}
 
         total_tokens = chat_completion.usage.total_tokens
 
-        # STEP 2: Retrieve relevant documents from the search index with the GPT optimized query
-        use_semantic_captions = True if overrides.get("semanticCaptions") else False
-        top = overrides.get("top")
-        exclude_category = overrides.get("excludeCategory") or None
-        filter = "category ne '{}'".format(exclude_category.replace("'", "''")) if exclude_category else None
-        semantic_ranker = overrides.get("semanticRanker")
+        # STEP 2: Retrieve relevant documents from the bing search
+        headers = {"Ocp-Apim-Subscription-Key": self.bing_search_key}
+        params = {"q": query_text}
+        response = requests.get(self.bing_search_url, headers=headers, params=params)
+        response.raise_for_status()
+        search_results = response.json()
+        urls = [v["url"] for v in search_results["webPages"]["value"]]
+        # names = [v["name"] for v in search_results["webPages"]["value"]]
+        snippets = [v["snippet"] for v in search_results["webPages"]["value"]]
+        # results = [f"{name}: {snippet}" for name, snippet in zip(names, snippets)]
+        results = [f"{url}: {snippet}" for url, snippet in zip(urls, snippets)]
+        # use_semantic_captions = True if overrides.get("semanticCaptions") else False
+        # top = overrides.get("top")
+        # exclude_category = overrides.get("excludeCategory") or None
+        # filter = "category ne '{}'".format(exclude_category.replace("'", "''")) if exclude_category else None
+        # semantic_ranker = overrides.get("semanticRanker")
 
-        if semantic_ranker:
-            r = self.search_client.search(query_text,
-                                          filter=filter,
-                                          query_type=QueryType.SEMANTIC,
-                                          query_language="en-us",
-                                          query_speller="lexicon",
-                                          semantic_configuration_name="default",
-                                          top=top,
-                                          query_caption="extractive|highlight-false" if use_semantic_captions else None
-                                          )
-        else:
-            r = self.search_client.search(query_text,
-                                          filter=filter,
-                                          top=top
-                                          )
-        if use_semantic_captions:
-            results = [doc[self.sourcepage_field] + ": " + nonewlines(" . ".join([c.text for c in doc['@search.captions']])) for doc in r]
-        else:
-            results = [doc[self.sourcepage_field] + ": " + nonewlines(doc[self.content_field]) for doc in r]
+        # if semantic_ranker:
+        #     r = self.search_client.search(query_text,
+        #                                   filter=filter,
+        #                                   query_type=QueryType.SEMANTIC,
+        #                                   query_language="en-us",
+        #                                   query_speller="lexicon",
+        #                                   semantic_configuration_name="default",
+        #                                   top=top,
+        #                                   query_caption="extractive|highlight-false" if use_semantic_captions else None
+        #                                   )
+        # else:
+        #     r = self.search_client.search(query_text,
+        #                                   filter=filter,
+        #                                   top=top
+        #                                   )
+        # if use_semantic_captions:
+        #     results = [doc[self.sourcepage_field] + ": " + nonewlines(" . ".join([c.text for c in doc['@search.captions']])) for doc in r]
+        # else:
+        #     results = [doc[self.sourcepage_field] + ": " + nonewlines(doc[self.content_field]) for doc in r]
+
+
         content = "\n".join(results)
 
         # STEP 3: Generate a contextual and content specific answer using the search results and chat history

@@ -197,7 +197,7 @@ const DocSearch = () => {
                     <div className={styles.chatInput}>
                         <QuestionInput
                             clearOnSend
-                            placeholder="ChatGPTが社内文書の検索をお手伝いします。何について知りたいですか？"
+                            placeholder="ChatGPTが社外文書の検索をお手伝いします。何について知りたいですか？"
                             disabled={isLoading}
                             onSend={question => makeApiRequest(question)}
                         />
