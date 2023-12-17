@@ -13,19 +13,19 @@ from azure.identity import DefaultAzureCredential
 # CosmosDB
 endpoint = os.environ.get("AZURE_COSMOSDB_ENDPOINT")
 key = os.environ.get("COSMOSDB_KEY")
-database_name = os.environ.get("AZURE_COSMOSDB_DATABASE")
+# database_name = os.environ.get("AZURE_COSMOSDB_DATABASE")
 container_name = os.environ.get("AZURE_COSMOSDB_CONTAINER")
 # CosmosDB Initialization
 credential = DefaultAzureCredential()
-database = CosmosClient(endpoint, credential).get_database_client(database_name)
-container = database.get_container_client(container_name)
+# database = CosmosClient(endpoint, credential).get_database_client(database_name)
+# container = database.get_container_client(container_name)
 
-logger = logging.getLogger(__name__)
-logger.addHandler(AzureLogHandler(connection_string=os.environ.get("APPLICATIONINSIGHTS_CONNECTION_STRING")))
-console_handler = logging.StreamHandler()
-console_handler.setLevel(logging.DEBUG)
-logger.addHandler(console_handler)
-logger.setLevel(logging.INFO)
+# logger = logging.getLogger(__name__)
+# logger.addHandler(AzureLogHandler(connection_string=os.environ.get("APPLICATIONINSIGHTS_CONNECTION_STRING")))
+# console_handler = logging.StreamHandler()
+# console_handler.setLevel(logging.DEBUG)
+# logger.addHandler(console_handler)
+# logger.setLevel(logging.INFO)
 
 class ApproachType(Enum):
     Chat = "chat"
@@ -56,7 +56,7 @@ def write_chatlog(approach: ApproachType, user_name: str, total_tokens: int, inp
 
     if query != "":
         properties["query"] = query
-    container.create_item(body=properties, enable_automatic_id_generation=True)
+    # container.create_item(body=properties, enable_automatic_id_generation=True)
     
 
 def write_error(category: str, user_name: str, error: str):
@@ -68,4 +68,4 @@ def write_error(category: str, user_name: str, error: str):
 
     log_data = json.dumps(properties).encode('utf-8').decode('unicode-escape')
     traceback.print_exc()
-    logger.error(log_data)
+    # logger.error(log_data)
