@@ -24,9 +24,6 @@ export function parseAnswerToHtml(answer: string, onCitationClicked: (citationFi
     const parts = parsedAnswer.split(/\[([^\]]+)\]/g);
 
     const fragments: string[] = parts.map((part, index) => {
-        const parts = part.split("/");
-        part = parts[parts.length - 1];
-
         if (index % 2 === 0) {
             return part;
         } else {
@@ -38,15 +35,40 @@ export function parseAnswerToHtml(answer: string, onCitationClicked: (citationFi
                 citationIndex = citations.length;
             }
 
-            const path = getCitationFilePath(part);
+            // const path = getCitationFilePath(part);
 
             return renderToStaticMarkup(
-                <a className="supContainer" title={part} onClick={() => onCitationClicked(path)}>
+                <a className="supContainer" title={part} onClick={() => onCitationClicked(part)}>
                     <sup>{citationIndex}</sup>
                 </a>
             );
         }
     });
+
+    // const fragments: string[] = parts.map((part, index) => {
+    //     const parts = part.split("/");
+    //     part = parts[parts.length - 1];
+
+    //     if (index % 2 === 0) {
+    //         return part;
+    //     } else {
+    //         let citationIndex: number;
+    //         if (citations.indexOf(part) !== -1) {
+    //             citationIndex = citations.indexOf(part) + 1;
+    //         } else {
+    //             citations.push(part);
+    //             citationIndex = citations.length;
+    //         }
+
+    //         const path = getCitationFilePath(part);
+
+    //         return renderToStaticMarkup(
+    //             <a className="supContainer" title={part} onClick={() => onCitationClicked(path)}>
+    //                 <sup>{citationIndex}</sup>
+    //             </a>
+    //         );
+    //     }
+    // });
 
     return {
         answerHtml: fragments.join(""),
