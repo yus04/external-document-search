@@ -84,6 +84,10 @@ FlaskInstrumentor().instrument_app(app)
 def static_file(path):
     return app.send_static_file(path)
 
+@app.route('/home')
+def home():
+    return 'Hello, this is the home page!'
+
 # Chat
 @app.route("/chat", methods=["POST"])
 def chat():
