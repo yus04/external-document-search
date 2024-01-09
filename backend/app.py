@@ -100,13 +100,13 @@ def chat():
     approach = request.json["approach"]
     user_name = get_user_name(request)
     overrides = request.json.get("overrides")
+    insert_cosmos_db(user_name, request.json["history"])
 
     try:
         impl = chat_approaches.get(approach)
         if not impl:
             return jsonify({"error": "unknown approach"}), 400
         r = impl.run(user_name, request.json["history"], overrides)
-        insert_cosmos_db(user_name, request.json["history"])
         return jsonify(r)
     except Exception as e:
         write_error("chat", user_name, str(e))
@@ -119,13 +119,14 @@ def docsearch():
     approach = request.json["approach"]
     user_name = get_user_name(request)
     overrides = request.json.get("overrides")
+    insert_cosmos_db(user_name, request.json["history"])
 
     try:
         impl = chat_approaches.get(approach)
         if not impl:
             return jsonify({"error": "unknown approach"}), 400
         r = impl.run(user_name, request.json["history"], overrides)
-        insert_cosmos_db(user_name, request.json["history"])
+        
         return jsonify(r)
     except Exception as e:
         write_error("docsearch", user_name, str(e))
