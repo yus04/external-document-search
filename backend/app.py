@@ -34,6 +34,9 @@ BING_SEARCH_URL = os.environ.get("BING_SEARCH_URL")
 COSMOS_DB_CONNECTION_STRING = os.environ.get('COSMOS_DB_CONNECTION_STRING')
 COSMOS_DB_NAME = os.environ.get('COSMOS_DB_NAME')
 COSMOS_DB_CONTAINR_NAME = os.environ.get('COSMOS_DB_CONTAINER_NAME')
+# COSMOS_DB_CONNECTION_STRING="AccountEndpoint=https://cosmos-db-portal.documents.azure.com:443/;AccountKey=oQ1xiaYEON337oOrbM7GKCqbu95FaZIfKrmLOCUI4n0KHLEx7KW3S2fU76JZs6OAjjtKbXHtPMIkACDbtjB5Uw==;"
+# COSMOS_DB_NAME="ChatHistory"
+# COSMOS_DB_CONTAINER_NAME="Prompts"
 
 gpt_models = {
     "gpt-3.5-turbo": {
@@ -93,6 +96,11 @@ FlaskInstrumentor().instrument_app(app)
 def static_file(path):
     return app.send_static_file(path)
 
+@app.route("/test", methods=["GET"])
+def test():
+    insert_cosmos_db('sample', 'sample2')
+    return 'sample'
+
 # Chat
 @app.route("/chat", methods=["POST"])
 def chat():
@@ -142,11 +150,12 @@ def ensure_openai_token():
 def get_container_client() -> any:
     client = CosmosClient.from_connection_string(COSMOS_DB_CONNECTION_STRING)
     database_client = client.get_database_client(COSMOS_DB_NAME)
-    container_client = database_client.get_container_client(COSMOS_DB_CONTAINR_NAME)
+    container_client = database_client.get_container_client(COSMOS_DB_CONTAINER_NAME)
     return container_client
 
 def insert_cosmos_db(user_name: str, history: str) -> None:
     try:
+        logging.info(user_name, history)
         container_client = get_container_client()
         dt_now_jst_aware = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9)))
         container_client.upsert_item({
