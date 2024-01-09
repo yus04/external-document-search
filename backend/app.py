@@ -1,5 +1,8 @@
 import os
 import time
+import logging
+import datetime
+import uuid
 from flask import Flask, request, jsonify
 
 import tiktoken
@@ -13,6 +16,8 @@ from approaches.chatread import ChatReadApproach
 from azure.monitor.opentelemetry import configure_azure_monitor
 from opentelemetry.instrumentation.flask import FlaskInstrumentor
 
+from azure.cosmos import CosmosClient
+
 
 # Replace these with your own values, either in environment variables or directly here
 AZURE_OPENAI_SERVICE = os.environ.get("AZURE_OPENAI_SERVICE")
@@ -25,6 +30,10 @@ AZURE_OPENAI_GPT_4_32K_DEPLOYMENT = os.environ.get("AZURE_OPENAI_GPT_4_32K_DEPLO
 
 BING_SEARCH_SUBSCRIPTION_KEY = os.environ.get("BING_SEARCH_SUBSCRIPTION_KEY")
 BING_SEARCH_URL = os.environ.get("BING_SEARCH_URL")
+
+COSMOS_DB_CONNECTION_STRING = os.environ.get('COSMOS_DB_CONNECTION_STRING')
+COSMOS_DB_NAME = os.environ.get('COSMOS_DB_NAME')
+COSMOS_DB_CONTAINR_NAME = os.environ.get('COSMOS_DB_CONTAINER_NAME')
 
 gpt_models = {
     "gpt-3.5-turbo": {
@@ -84,10 +93,6 @@ FlaskInstrumentor().instrument_app(app)
 def static_file(path):
     return app.send_static_file(path)
 
-@app.route('/home')
-def home():
-    return 'Hello, this is the home page!'
-
 # Chat
 @app.route("/chat", methods=["POST"])
 def chat():
@@ -101,6 +106,7 @@ def chat():
         if not impl:
             return jsonify({"error": "unknown approach"}), 400
         r = impl.run(user_name, request.json["history"], overrides)
+        insert_cosmos_db(user_name, request.json["history"])
         return jsonify(r)
     except Exception as e:
         write_error("chat", user_name, str(e))
@@ -119,6 +125,7 @@ def docsearch():
         if not impl:
             return jsonify({"error": "unknown approach"}), 400
         r = impl.run(user_name, request.json["history"], overrides)
+        insert_cosmos_db(user_name, request.json["history"])
         return jsonify(r)
     except Exception as e:
         write_error("docsearch", user_name, str(e))
@@ -130,6 +137,27 @@ def ensure_openai_token():
         openai_token = azure_credential.get_token("https://cognitiveservices.azure.com/.default")
         openai.api_key = openai_token.token
     # openai.api_key = os.environ.get("AZURE_OPENAI_KEY")
+
+def get_container_client() -> any:
+    client = CosmosClient.from_connection_string(COSMOS_DB_CONNECTION_STRING)
+    database_client = client.get_database_client(COSMOS_DB_NAME)
+    container_client = database_client.get_container_client(COSMOS_DB_CONTAINR_NAME)
+    return container_client
+
+def insert_cosmos_db(user_name: str, history: str) -> None:
+    try:
+        container_client = get_container_client()
+        dt_now_jst_aware = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9)))
+        container_client.upsert_item({
+                'id': str(uuid.uuid4()),
+                'usage': 'log',
+                'user_name': user_name,
+                'history': history,
+                'created_at': str(dt_now_jst_aware),
+        })
+        logging.info('Project details are stored to Cosmos DB.')
+    except Exception as e:
+        logging.error(e)
    
 if __name__ == "__main__":
     app.run(debug=True, port=5000, host='0.0.0.0')
