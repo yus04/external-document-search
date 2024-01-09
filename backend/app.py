@@ -6,9 +6,9 @@ import tiktoken
 import openai
 
 from azure.identity import DefaultAzureCredential
-from backend.approaches.chatlogging import get_user_name, write_error
-from backend.approaches.chatreadretrieveread import ChatReadRetrieveReadApproach
-from backend.approaches.chatread import ChatReadApproach
+from approaches.chatlogging import get_user_name, write_error
+from approaches.chatreadretrieveread import ChatReadRetrieveReadApproach
+from approaches.chatread import ChatReadApproach
 
 from azure.monitor.opentelemetry import configure_azure_monitor
 from opentelemetry.instrumentation.flask import FlaskInstrumentor
