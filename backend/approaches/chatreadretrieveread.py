@@ -23,7 +23,7 @@ class ChatReadRetrieveReadApproach(Approach):
     """
     system_message_chat_conversation = """Assistant helps the customer questions. Be brief in your answers.
 Answer ONLY with the facts listed in the list of sources below. If there isn't enough information below, say you don't know. Do not generate answers that don't use the sources below. If asking a clarifying question to the user would help, ask the question.
-For tabular information return it as an html table. Do not return markdown format. You MUST anwer in Japanese Katakana.
+For tabular information return it as an html table. Do not return markdown format. You MUST Anwer in Japanese Katakana.
 Each source has a name followed by colon and the actual information, always include the source name for each fact you use in the response. Use square brackets to reference the source, e.g. [info1.txt]. Don't combine sources, list each source separately, e.g. [info1.txt][info2.pdf].
 """
     query_prompt_template = """Below is a history of the conversation so far, and a new question asked by the user that needs to be answered by searching in a knowledge base.
@@ -38,9 +38,9 @@ source quesion: {user_question}
 """
     query_prompt_few_shots = [
         {'role' : USER, 'content' : 'What are my health plans?' },
-        {'role' : ASSISTANT, 'content' : 'Show available health plans' },
+        {'role' : ASSISTANT, 'content' : 'リヨウカノウナケンコウホケンヲショウカイスル' },
         {'role' : USER, 'content' : 'does my plan cover cardio?' },
-        {'role' : ASSISTANT, 'content' : 'Health plan cardio coverage' }
+        {'role' : ASSISTANT, 'content' : 'ケンコウホケンノハンイ' }
     ]
 
     def __init__(self, bing_search_key: str, bing_search_url: str):
