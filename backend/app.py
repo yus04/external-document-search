@@ -35,19 +35,6 @@ COSMOS_DB_CONNECTION_STRING = os.environ.get('COSMOS_DB_CONNECTION_STRING')
 COSMOS_DB_NAME = os.environ.get('COSMOS_DB_NAME')
 COSMOS_DB_CONTAINER_NAME = os.environ.get('COSMOS_DB_CONTAINER_NAME')
 
-# AZURE_OPENAI_SERVICE="cog-eqvzkm7bouaig"
-# AZURE_OPENAI_API_VERSION="2023-05-15"
-# AZURE_OPENAI_GPT_35_TURBO_DEPLOYMENT="gpt-35-turbo-deploy"
-# AZURE_OPENAI_GPT_35_TURBO_16K_DEPLOYMENT="gpt-35-turbo-16k-deploy"
-# AZURE_OPENAI_GPT_4_DEPLOYMENT=""
-# AZURE_OPENAI_GPT_4_32K_DEPLOYMENT=""
-# BING_SEARCH_SUBSCRIPTION_KEY="f06ef78873554afeb02affb37acf9163"
-# BING_SEARCH_URL="https://api.bing.microsoft.com/v7.0/search"
-
-# COSMOS_DB_CONNECTION_STRING="AccountEndpoint=https://cosmos-db-portal.documents.azure.com:443/;AccountKey=oQ1xiaYEON337oOrbM7GKCqbu95FaZIfKrmLOCUI4n0KHLEx7KW3S2fU76JZs6OAjjtKbXHtPMIkACDbtjB5Uw==;"
-# COSMOS_DB_NAME="ChatHistory"
-# COSMOS_DB_CONTAINER_NAME="Prompts"
-
 gpt_models = {
     "gpt-3.5-turbo": {
         "deployment": AZURE_OPENAI_GPT_35_TURBO_DEPLOYMENT,
@@ -118,13 +105,14 @@ def chat():
     approach = request.json["approach"]
     user_name = get_user_name(request)
     overrides = request.json.get("overrides")
-    insert_cosmos_db(user_name, request.json["history"])
+    # insert_cosmos_db(user_name, request.json["history"])
 
     try:
         impl = chat_approaches.get(approach)
         if not impl:
             return jsonify({"error": "unknown approach"}), 400
         r = impl.run(user_name, request.json["history"], overrides)
+        insert_cosmos_db(user_name, request.json["history"], r)
         return jsonify(r)
     except Exception as e:
         write_error("chat", user_name, str(e))
@@ -137,14 +125,14 @@ def docsearch():
     approach = request.json["approach"]
     user_name = get_user_name(request)
     overrides = request.json.get("overrides")
-    insert_cosmos_db(user_name, request.json["history"])
+    # insert_cosmos_db(user_name, request.json["history"])
 
     try:
         impl = chat_approaches.get(approach)
         if not impl:
             return jsonify({"error": "unknown approach"}), 400
         r = impl.run(user_name, request.json["history"], overrides)
-        
+        insert_cosmos_db(user_name, request.json["history"], r)
         return jsonify(r)
     except Exception as e:
         write_error("docsearch", user_name, str(e))
@@ -163,7 +151,7 @@ def get_container_client() -> any:
     container_client = database_client.get_container_client(COSMOS_DB_CONTAINER_NAME)
     return container_client
 
-def insert_cosmos_db(user_name: str, history: str) -> None:
+def insert_cosmos_db(user_name: str, history: str, r: str) -> None:
     try:
         logging.info(user_name, history)
         container_client = get_container_client()
@@ -173,6 +161,7 @@ def insert_cosmos_db(user_name: str, history: str) -> None:
                 'usage': 'log',
                 'user_name': user_name,
                 'history': history,
+                'answer': r,
                 'created_at': str(dt_now_jst_aware),
         })
         logging.info('Project details are stored to Cosmos DB.')
