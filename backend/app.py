@@ -34,6 +34,16 @@ BING_SEARCH_URL = os.environ.get("BING_SEARCH_URL")
 COSMOS_DB_CONNECTION_STRING = os.environ.get('COSMOS_DB_CONNECTION_STRING')
 COSMOS_DB_NAME = os.environ.get('COSMOS_DB_NAME')
 COSMOS_DB_CONTAINER_NAME = os.environ.get('COSMOS_DB_CONTAINER_NAME')
+
+# AZURE_OPENAI_SERVICE="cog-eqvzkm7bouaig"
+# AZURE_OPENAI_API_VERSION="2023-05-15"
+# AZURE_OPENAI_GPT_35_TURBO_DEPLOYMENT="gpt-35-turbo-deploy"
+# AZURE_OPENAI_GPT_35_TURBO_16K_DEPLOYMENT="gpt-35-turbo-16k-deploy"
+# AZURE_OPENAI_GPT_4_DEPLOYMENT=""
+# AZURE_OPENAI_GPT_4_32K_DEPLOYMENT=""
+# BING_SEARCH_SUBSCRIPTION_KEY="f06ef78873554afeb02affb37acf9163"
+# BING_SEARCH_URL="https://api.bing.microsoft.com/v7.0/search"
+
 # COSMOS_DB_CONNECTION_STRING="AccountEndpoint=https://cosmos-db-portal.documents.azure.com:443/;AccountKey=oQ1xiaYEON337oOrbM7GKCqbu95FaZIfKrmLOCUI4n0KHLEx7KW3S2fU76JZs6OAjjtKbXHtPMIkACDbtjB5Uw==;"
 # COSMOS_DB_NAME="ChatHistory"
 # COSMOS_DB_CONTAINER_NAME="Prompts"
@@ -170,4 +180,4 @@ def insert_cosmos_db(user_name: str, history: str) -> None:
         logging.error(e)
    
 if __name__ == "__main__":
-    app.run(debug=True, port=5000, host='0.0.0.0')
+    app.run(port=5000, host='0.0.0.0')
