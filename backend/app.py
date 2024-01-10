@@ -105,7 +105,6 @@ def chat():
     approach = request.json["approach"]
     user_name = get_user_name(request)
     overrides = request.json.get("overrides")
-    # insert_cosmos_db(user_name, request.json["history"])
 
     try:
         impl = chat_approaches.get(approach)
@@ -125,7 +124,6 @@ def docsearch():
     approach = request.json["approach"]
     user_name = get_user_name(request)
     overrides = request.json.get("overrides")
-    # insert_cosmos_db(user_name, request.json["history"])
 
     try:
         impl = chat_approaches.get(approach)
