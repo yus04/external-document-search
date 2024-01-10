@@ -41,7 +41,7 @@
   },
   {
     "name": "COSMOS_DB_CONNECTION_STRING",
-    "value": "xxxx"
+    "value": "xxxx",
     "slotSetting": false
   },
   {
