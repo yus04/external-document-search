@@ -38,7 +38,7 @@ param cosmosDbResourceGroupName string = ''
 
 // Azure ポータルから取得した Bing Search v7 の
 // サブスクリプションキーを入力
-param bingSearchSubscriptionKey string = '5009c6ee46b84c8a9438145e53455449'
+param bingSearchSubscriptionKey string = ''
 
 param bingSearchUrl string = 'https://api.bing.microsoft.com/v7.0/search'
 
