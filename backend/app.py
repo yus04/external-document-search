@@ -72,7 +72,8 @@ openai.api_version = AZURE_OPENAI_API_VERSION
 # Comment these two lines out if using keys, set your API key in the OPENAI_API_KEY environment variable instead
 openai.api_type = "azure_ad"
 openai_token = azure_credential.get_token("https://cognitiveservices.azure.com/.default")
-openai.api_key = openai_token.token
+openai.api_key = "646fd1e1437c4d60ae2b907fbbfd81f9"
+# openai.api_key = openai_token.token
 # openai.api_key = os.environ.get("AZURE_OPENAI_KEY")
 
 chat_approaches = {
