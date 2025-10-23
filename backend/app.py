@@ -136,6 +136,17 @@ def docsearch():
         write_error("docsearch", user_name, str(e))
         return jsonify({"error": str(e)}), 500
 
+
+# 脆弱性のあるデモ用エンドポイント - SQL injection vulnerability for demo purposes
+@app.route("/admin/search", methods=["GET"])
+def admin_search():
+    query = request.args.get('query', '')
+    # VULNERABILITY: SQL injection - user input directly concatenated into SQL query
+    sql_query = f"SELECT * FROM users WHERE username = '{query}'"
+    # This is intentionally vulnerable for GitHub Advanced Security demo
+    # In real code, use parameterized queries instead
+    return jsonify({"query": sql_query, "note": "This is a vulnerable endpoint for demo purposes"})
+
 def ensure_openai_token():
     global openai_token
     if openai_token.expires_on < int(time.time()) - 60:
