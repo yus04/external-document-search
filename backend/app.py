@@ -137,15 +137,55 @@ def docsearch():
         return jsonify({"error": str(e)}), 500
 
 
-# 脆弱性のあるデモ用エンドポイント - SQL injection vulnerability for demo purposes
+# 脆弱性のあるデモ用エンドポイント - Multiple vulnerabilities for GitHub Advanced Security demo
 @app.route("/admin/search", methods=["GET"])
 def admin_search():
     query = request.args.get('query', '')
-    # VULNERABILITY: SQL injection - user input directly concatenated into SQL query
-    sql_query = f"SELECT * FROM users WHERE username = '{query}'"
-    # This is intentionally vulnerable for GitHub Advanced Security demo
-    # In real code, use parameterized queries instead
-    return jsonify({"query": sql_query, "note": "This is a vulnerable endpoint for demo purposes"})
+    
+    # VULNERABILITY 1: Command injection - user input passed to os.system
+    import os
+    command = f"grep -r '{query}' /tmp/logs/"
+    os.system(command)  # Dangerous: allows command injection
+    
+    # VULNERABILITY 2: Path traversal - user input used in file path
+    filename = request.args.get('file', 'default.txt')
+    file_path = f"/app/data/{filename}"  # Vulnerable to path traversal attacks like ../../../etc/passwd
+    
+    try:
+        with open(file_path, 'r') as f:
+            file_content = f.read()
+    except:
+        file_content = "File not found"
+    
+    # VULNERABILITY 3: SQL injection with actual database operation simulation
+    import sqlite3
+    conn = sqlite3.connect(':memory:')
+    cursor = conn.cursor()
+    cursor.execute("CREATE TABLE users (id INTEGER, username TEXT, email TEXT)")
+    
+    # Vulnerable SQL query - user input directly concatenated
+    vulnerable_sql = f"SELECT * FROM users WHERE username = '{query}' OR email LIKE '%{query}%'"
+    try:
+        cursor.execute(vulnerable_sql)
+        results = cursor.fetchall()
+    except:
+        results = []
+    
+    # VULNERABILITY 4: Cross-site scripting (XSS) - unescaped user input in response
+    response_html = f"<h1>Search Results for: {query}</h1>"  # XSS vulnerability
+    
+    conn.close()
+    
+    return jsonify({
+        "query": query,
+        "sql": vulnerable_sql,
+        "command": command,
+        "file_path": file_path,
+        "file_content": file_content[:100] if file_content else "",
+        "html_response": response_html,
+        "results": results,
+        "note": "This endpoint contains multiple vulnerabilities for GitHub Advanced Security demo"
+    })
 
 def ensure_openai_token():
     global openai_token
